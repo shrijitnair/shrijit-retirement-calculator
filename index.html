@@ -74,6 +74,7 @@
             animation: fadeIn 0.5s ease-out forwards;
         }
         /* Custom styles for better number input appearance */
+        /* Hide steppers by default for all number inputs */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -81,6 +82,18 @@
         }
         input[type=number] {
             -moz-appearance: textfield;
+        }
+        
+        /* Show default browser steppers for percentage fields */
+        input[type=number].with-stepper::-webkit-inner-spin-button,
+        input[type=number].with-stepper::-webkit-outer-spin-button {
+            -webkit-appearance: inner-spin-button !important;
+            margin: 0;
+            opacity: 1;
+        }
+        
+        input[type=number].with-stepper {
+            -moz-appearance: number-input;
         }
         /* Suggestion box styling */
         .suggestion-box {
@@ -117,49 +130,49 @@
             </div>
              <div>
                 <label for="monthlyExpense" class="block text-sm font-medium text-gray-300">Current Monthly Expense (₹)</label>
-                <input type="number" id="monthlyExpense" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 75000">
+                <input type="number" id="monthlyExpense" value="100000" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 75000">
             </div>
             <div>
                 <label for="currentSalary" class="block text-sm font-medium text-gray-300">Current Take-home Salary (p.a. in Lacs)</label>
-                <input type="number" id="currentSalary" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 25">
+                <input type="number" id="currentSalary" value="35" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 25">
             </div>
              <div>
                 <label for="salaryGrowth" class="block text-sm font-medium text-gray-300">Annual Salary Growth (%)</label>
-                <input type="number" id="salaryGrowth" value="8" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="salaryGrowth" value="6" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="equityPct" class="block text-sm font-medium text-gray-300">Initial Equity Allocation (%)</label>
-                <input type="number" id="equityPct" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 70">
+                <input type="number" id="equityPct" value="60" step="1" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 70">
             </div>
             <div>
                 <label for="debtPct" class="block text-sm font-medium text-gray-300">Initial Debt Allocation (%)</label>
-                <input type="number" id="debtPct" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 30">
+                <input type="number" id="debtPct" value="40" readonly class="mt-1 block w-full bg-gray-600 text-gray-300 border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm cursor-not-allowed" placeholder="e.g., 30">
             </div>
             <div>
                 <label for="equityGrowth" class="block text-sm font-medium text-gray-300">Expected Equity Growth (%)</label>
-                <input type="number" id="equityGrowth" value="12" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="equityGrowth" value="12" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="debtGrowth" class="block text-sm font-medium text-gray-300">Expected Debt Growth (%)</label>
-                <input type="number" id="debtGrowth" value="6" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="debtGrowth" value="6" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
 
             <!-- Column 2 -->
             <div>
                 <label for="presentAge" class="block text-sm font-medium text-gray-300">Present Age</label>
-                <input type="number" id="presentAge" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 30">
+                <input type="number" id="presentAge" value="40" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 30">
             </div>
             <div>
                 <label for="retirementAge" class="block text-sm font-medium text-gray-300">Retirement Age</label>
-                <input type="number" id="retirementAge" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 60">
+                <input type="number" id="retirementAge" value="50" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 60">
             </div>
             <div>
                 <label for="lifeExpectancy" class="block text-sm font-medium text-gray-300">Life Expectancy</label>
-                <input type="number" id="lifeExpectancy" value="85" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="lifeExpectancy" value="90" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="inflationRate" class="block text-sm font-medium text-gray-300">Rate of Inflation (%)</label>
-                <input type="number" id="inflationRate" value="6" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="inflationRate" value="7" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="childEducationExpense" class="block text-sm font-medium text-gray-300">Child Education Expense Today (₹)</label>
@@ -167,11 +180,11 @@
             </div>
             <div>
                 <label for="educationalInflation" class="block text-sm font-medium text-gray-300">Educational Inflation (%)</label>
-                <input type="number" id="educationalInflation" value="10" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="educationalInflation" value="10" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="ageOfChild1" class="block text-sm font-medium text-gray-300">Age of Child 1 (0 if none)</label>
-                <input type="number" id="ageOfChild1" value="8" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="number" id="ageOfChild1" value="10" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
                 <label for="ageOfChild2" class="block text-sm font-medium text-gray-300">Age of Child 2 (0 if none)</label>
@@ -344,6 +357,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         applyTheme(savedTheme);
+        
+        // Auto-calculate debt allocation when equity allocation changes
+        const equityPctInput = document.getElementById('equityPct');
+        const debtPctInput = document.getElementById('debtPct');
+        
+        equityPctInput.addEventListener('input', () => {
+            const equityValue = parseFloat(equityPctInput.value) || 0;
+            const debtValue = 100 - equityValue;
+            debtPctInput.value = debtValue;
+        });
     });
 
     calculateBtn.addEventListener('click', () => {
