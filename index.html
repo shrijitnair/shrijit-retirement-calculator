@@ -586,15 +586,41 @@
         const outcomeValue = document.getElementById('outcome-value');
         const outcomeDesc = document.getElementById('outcome-description');
 
-        if (finalSurplus > 0) {
+        // Calculate required corpus to determine if we should show success or shortfall
+        const requiredCorpus = calculateRequiredCorpus({
+            retirementAge,
+            lifeExpectancy,
+            initialMonthlyExpense,
+            inflationRate,
+            initialEquityPct,
+            equityGrowth,
+            debtGrowth,
+            presentAge
+        });
+        
+        // If projected corpus at retirement meets or exceeds required corpus, show success
+        if (finalSurplus > 0 || totalProjectedCorpus >= requiredCorpus) {
             outcomeCard.className = 'p-6 rounded-xl bg-green-900/50 text-green-300 border border-green-500/50';
             outcomeTitle.textContent = 'Projected Final Value';
-            outcomeValue.textContent = formatCurrency(finalSurplus);
-            outcomeDesc.textContent = `Congratulations! Based on the simulation, you could have this amount left at age ${lifeExpectancy}.`;
+            outcomeValue.textContent = formatCurrency(Math.max(0, finalSurplus));
+            
+            if (finalSurplus > 0) {
+                outcomeDesc.textContent = `Congratulations! Based on the simulation, you could have this amount left at age ${lifeExpectancy}.`;
+            } else {
+                outcomeDesc.textContent = `Your projected corpus at retirement (${formatCurrency(totalProjectedCorpus)}) meets the required amount (${formatCurrency(requiredCorpus)}). You're on track! The corpus reaches ₹0 around age ${lifeExpectancy}, which is exactly as planned.`;
+            }
         } else {
             outcomeCard.className = 'p-6 rounded-xl bg-red-900/50 text-red-300 border border-red-500/50';
             outcomeTitle.textContent = 'Projected Shortfall';
-            const moneyRunsOutAge = retirementAge + chartData.findIndex(v => v <= 0) + 1;
+            
+            // Find when money runs out - search from retirement age onwards
+            let moneyRunsOutAge = lifeExpectancy;
+            for (let i = 0; i < chartData.length; i++) {
+                if (chartData[i] <= 0) {
+                    moneyRunsOutAge = presentAge + i;
+                    break;
+                }
+            }
             
             // Calculate required corpus and additional savings needed
             const requiredCorpus = calculateRequiredCorpus({
@@ -616,7 +642,7 @@
                 salaryGrowth
             );
 
-            outcomeValue.textContent = formatCurrency(savingsInfo.shortfall);
+            outcomeValue.textContent = formatCurrency(Math.abs(savingsInfo.shortfall));
 
             // Add suggestion section
             outcomeDesc.innerHTML = `
@@ -629,13 +655,13 @@
                             <p><strong>Current Projected Corpus:</strong><br/>${formatCurrency(totalProjectedCorpus)}</p>
                         </div>
                         <div class="space-y-2">
-                            <p class="text-red-300"><strong>Additional Corpus Needed:</strong><br/>${formatCurrency(savingsInfo.shortfall)}</p>
-                            <p class="text-yellow-300"><strong>Extra Monthly Savings:</strong><br/>${formatCurrency(savingsInfo.additionalMonthlySavings)}</p>
+                            <p class="text-red-300"><strong>Additional Corpus Needed:</strong><br/>${formatCurrency(Math.abs(savingsInfo.shortfall))}</p>
+                            <p class="text-yellow-300"><strong>Extra Monthly Savings:</strong><br/>${formatCurrency(Math.abs(savingsInfo.additionalMonthlySavings))}</p>
                         </div>
                     </div>
                     <div class="mt-3 p-2 bg-yellow-900/30 rounded border border-yellow-500/30">
                         <p class="text-xs text-yellow-200">
-                            <strong>💡 Tip:</strong> Increase your monthly savings by ${formatCurrency(savingsInfo.additionalMonthlySavings)} 
+                            <strong>💡 Tip:</strong> Increase your monthly savings by ${formatCurrency(Math.abs(savingsInfo.additionalMonthlySavings))} 
                             to ensure your corpus lasts until age ${lifeExpectancy}. You can achieve this through higher salary growth, 
                             reduced expenses, or better investment returns.
                         </p>
