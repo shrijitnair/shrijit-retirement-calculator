@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Light Mode styles */
+        body.light {
+            --bg-color: #f3f4f6; /* gray-100 */
+            --text-color: #1f2937; /* gray-800 */
+            --card-bg: #ffffff; /* white */
+            --input-bg: #e5e7eb; /* gray-200 */
+            --input-text: #11182c; /* gray-900 */
+            --border-color: #d1d5db; /* gray-300 */
+            --subtle-text: #6b7280; /* gray-500 */
+            --link-color: #4f46e5; /* indigo-600 */
+            --hover-link-color: #4338ca; /* indigo-700 */
+        }
+
+        body.light {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        body.light .bg-gray-900 { background-color: var(--bg-color); }
+        body.light .bg-gray-800 { background-color: var(--card-bg); border: 1px solid var(--border-color); }
+        body.light .text-white, body.light .text-gray-200, body.light .text-white { color: var(--text-color); }
+        body.light .text-gray-300, body.light .text-gray-400 { color: var(--subtle-text); }
+        body.light .bg-gray-700 { background-color: var(--input-bg); }
+        body.light .border-gray-600 { border-color: var(--border-color); }
+        body.light .focus\:ring-indigo-500:focus { --tw-ring-color: var(--link-color); }
+        body.light .focus\:border-indigo-500:focus { border-color: var(--link-color); }
+
+        body.light .bg-indigo-600 { background-color: var(--link-color); }
+        body.light .hover\:bg-indigo-700:hover { background-color: var(--hover-link-color); }
+
+        body.light .bg-gray-700\/50 { background-color: rgba(249, 250, 251, 0.8); } /* gray-50 with opacity */
+
+        body.light .text-red-200 { color: #991b1b; } /* red-800 */
+        body.light .bg-red-900\/50 { background-color: rgba(254, 226, 226, 0.8); } /* red-100 with opacity */
+        body.light .border-red-500\/50 { border-color: #fca5a5; } /* red-300 */
+
+        body.light .text-green-300 { color: #065f46; } /* green-800 */
+        body.light .bg-green-900\/50 { background-color: rgba(209, 250, 229, 0.8); } /* green-100 with opacity */
+        body.light .border-green-500\/50 { border-color: #6ee7b7; } /* green-300 */
+
+        body.light .text-red-300 { color: #b91c1c; } /* red-700 */
+        body.light .text-yellow-300 { color: #b45309; } /* amber-700 */
+        body.light .text-blue-300 { color: #1d4ed8; } /* blue-700 */
+
+        body.light .suggestion-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(147, 51, 234, 0.08));
+        }
+        body.light .border-blue-500\/30 { border-color: #93c5fd; } /* blue-300 */
+        body.light .bg-yellow-900\/30 { background-color: rgba(254, 249, 195, 0.8); } /* yellow-100 with opacity */
+        body.light .border-yellow-500\/30 { border-color: #fde047; } /* yellow-300 */
+        body.light .text-yellow-200 { color: #854d0e; } /* amber-700 */
+        body.light footer { color: #4b5563; } /* gray-600 */
+
+        /* Simple animation for result display */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        /* Custom styles for better number input appearance */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        /* Suggestion box styling */
+        .suggestion-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+            backdrop-filter: blur(10px);
+        }
+        .suggestion-box:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15));
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-lg p-6 md:p-10">
+        
+        <!-- Header -->
+        <div class="text-center mb-8 relative">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Retirement Calculator</h1>
+            <p class="text-gray-400 mt-2">Plan your financial future with confidence.</p>
+            <button id="theme-toggle" class="absolute top-0 right-0 p-2 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none">
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.121-3.536a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 18a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zM4.95 14.536L4.243 15.243a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM1.464 8.536a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM4.95 5.464L4.243 4.757a1 1 0 011.414-1.414l.707.707a1 1 0 01-1.414 1.414z"></path></svg>
+            </button>
+        </div>
+
+        <!-- Input Form -->
+        <div id="calculator-form" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            
+            <!-- Column 1 -->
+            <div>
+                <label for="currentCorpus" class="block text-sm font-medium text-gray-300">Current Corpus (₹)</label>
+                <input type="number" id="currentCorpus" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 5000000">
+            </div>
+             <div>
+                <label for="monthlyExpense" class="block text-sm font-medium text-gray-300">Current Monthly Expense (₹)</label>
+                <input type="number" id="monthlyExpense" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 75000">
+            </div>
+            <div>
+                <label for="currentSalary" class="block text-sm font-medium text-gray-300">Current Take-home Salary (p.a. in Lacs)</label>
+                <input type="number" id="currentSalary" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 25">
+            </div>
+             <div>
+                <label for="salaryGrowth" class="block text-sm font-medium text-gray-300">Annual Salary Growth (%)</label>
+                <input type="number" id="salaryGrowth" value="8" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="equityPct" class="block text-sm font-medium text-gray-300">Initial Equity Allocation (%)</label>
+                <input type="number" id="equityPct" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 70">
+            </div>
+            <div>
+                <label for="debtPct" class="block text-sm font-medium text-gray-300">Initial Debt Allocation (%)</label>
+                <input type="number" id="debtPct" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 30">
+            </div>
+            <div>
+                <label for="equityGrowth" class="block text-sm font-medium text-gray-300">Expected Equity Growth (%)</label>
+                <input type="number" id="equityGrowth" value="12" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="debtGrowth" class="block text-sm font-medium text-gray-300">Expected Debt Growth (%)</label>
+                <input type="number" id="debtGrowth" value="6" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <!-- Column 2 -->
+            <div>
+                <label for="presentAge" class="block text-sm font-medium text-gray-300">Present Age</label>
+                <input type="number" id="presentAge" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 30">
+            </div>
+            <div>
+                <label for="retirementAge" class="block text-sm font-medium text-gray-300">Retirement Age</label>
+                <input type="number" id="retirementAge" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 60">
+            </div>
+            <div>
+                <label for="lifeExpectancy" class="block text-sm font-medium text-gray-300">Life Expectancy</label>
+                <input type="number" id="lifeExpectancy" value="85" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="inflationRate" class="block text-sm font-medium text-gray-300">Rate of Inflation (%)</label>
+                <input type="number" id="inflationRate" value="6" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="childEducationExpense" class="block text-sm font-medium text-gray-300">Child Education Expense Today (₹)</label>
+                <input type="number" id="childEducationExpense" value="5000000" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="educationalInflation" class="block text-sm font-medium text-gray-300">Educational Inflation (%)</label>
+                <input type="number" id="educationalInflation" value="10" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="ageOfChild1" class="block text-sm font-medium text-gray-300">Age of Child 1 (0 if none)</label>
+                <input type="number" id="ageOfChild1" value="8" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="ageOfChild2" class="block text-sm font-medium text-gray-300">Age of Child 2 (0 if none)</label>
+                <input type="number" id="ageOfChild2" value="0" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            
+            <!-- Button -->
+            <div class="md:col-span-2">
+                 <button id="calculate-btn" class="mt-4 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                    Calculate
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="mt-10 hidden">
+            <div id="error-message" class="hidden p-4 mb-4 text-sm text-red-200 bg-red-900/50 rounded-lg border border-red-500/50" role="alert"></div>
+            
+            <div id="success-message" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <!-- Your Projected Corpus -->
+                <div class="bg-gray-700/50 p-6 rounded-xl border border-gray-600">
+                    <h3 class="text-lg font-medium text-gray-400">Projected Corpus at Retirement</h3>
+                    <p id="projected-corpus" class="text-3xl font-bold text-white mt-2"></p>
+                </div>
+                
+                <!-- Outcome -->
+                <div id="outcome-card" class="p-6 rounded-xl min-h-[200px]">
+                     <h3 id="outcome-title" class="text-xl font-semibold mb-2"></h3>
+                     <p id="outcome-value" class="text-4xl font-bold mb-3"></p>
+                     <div id="outcome-description" class="text-base"></div>
+                </div>
+
+                 <!-- Graph -->
+                <div id="chart-container" class="md:col-span-2 p-6 rounded-xl bg-gray-700/50 border border-gray-600 hidden">
+                    <h3 class="text-lg font-medium text-gray-300 mb-4">Retirement Corpus Projection</h3>
+                    <canvas id="corpusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="text-center text-gray-500 mt-4 text-sm">
+        Created by Shrijit Nair
+    </footer>
+
+<script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resultsDiv = document.getElementById('results');
+    const errorDiv = document.getElementById('error-message');
+    const successDiv = document.getElementById('success-message');
+    const chartContainer = document.getElementById('chart-container');
+    const chartCanvas = document.getElementById('corpusChart');
+    let corpusChart = null;
+
+    const formatCurrency = (value) => {
+        if (isNaN(value) || !isFinite(value)) return "₹ 0";
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0,
+        }).format(value);
+    };
+
+    const calculateRequiredCorpus = (params) => {
+        // This function calculates the minimum corpus needed at retirement to last until life expectancy
+        const { 
+            retirementAge, 
+            lifeExpectancy, 
+            initialMonthlyExpense, 
+            inflationRate, 
+            initialEquityPct, 
+            equityGrowth, 
+            debtGrowth,
+            presentAge 
+        } = params;
+
+        // Calculate the annual expense at retirement age
+        let expenseAtRetirement = initialMonthlyExpense * 12;
+        for (let age = presentAge; age < retirementAge; age++) {
+            expenseAtRetirement *= (1 + inflationRate);
+        }
+
+        // We need to find the corpus that will exactly last until life expectancy
+        // This is a present value calculation of future expenses with growth
+        let totalPresentValue = 0;
+        let currentExpense = expenseAtRetirement;
+
+        for (let age = retirementAge; age < lifeExpectancy; age++) {
+            // Calculate target allocation for this age
+            let targetEquityPct = initialEquityPct;
+            if (age >= 50) {
+                targetEquityPct = Math.max(0, 0.50 - (age - 50) / 100);
+            }
+            
+            // Calculate blended growth rate
+            const blendedGrowthRate = targetEquityPct * equityGrowth + (1 - targetEquityPct) * debtGrowth;
+            
+            // Calculate present value of this year's expense
+            const yearsFromRetirement = age - retirementAge;
+            const discountRate = blendedGrowthRate;
+            const presentValueOfExpense = currentExpense / Math.pow(1 + discountRate, yearsFromRetirement);
+            
+            totalPresentValue += presentValueOfExpense;
+            currentExpense *= (1 + inflationRate);
+        }
+
+        return totalPresentValue;
+    };
+
+    const calculateAdditionalSavingsNeeded = (currentProjectedCorpus, requiredCorpus, presentAge, retirementAge, salaryGrowth) => {
+        const shortfall = requiredCorpus - currentProjectedCorpus;
+        const yearsToRetirement = retirementAge - presentAge;
+        
+        // Calculate additional annual savings needed (assuming same growth as salary)
+        // This is a future value of annuity calculation
+        const growthRate = salaryGrowth;
+        const annuityFactor = (Math.pow(1 + growthRate, yearsToRetirement) - 1) / growthRate;
+        const additionalAnnualSavings = shortfall / annuityFactor;
+        
+        return {
+            shortfall: shortfall,
+            additionalAnnualSavings: additionalAnnualSavings,
+            additionalMonthlySavings: additionalAnnualSavings / 12
+        };
+    };
+
+    // --- Theme Handling ---
+    const updateChartTheme = () => {
+        if (!corpusChart) return;
+        const isLight = document.body.classList.contains('light');
+
+        const gridColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+        const tickColor = isLight ? '#4b5563' : '#9ca3af';
+        const legendColor = isLight ? '#1f2937' : '#d1d5db';
+        const borderColor = isLight ? '#4f46e5' : 'rgba(79, 70, 229, 1)';
+        const backgroundColor = isLight ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.2)';
+
+        corpusChart.options.scales.y.grid.color = gridColor;
+        corpusChart.options.scales.x.grid.color = gridColor;
+        corpusChart.options.scales.y.ticks.color = tickColor;
+        corpusChart.options.scales.x.ticks.color = tickColor;
+        corpusChart.options.plugins.legend.labels.color = legendColor;
+        corpusChart.data.datasets[0].borderColor = borderColor;
+        corpusChart.data.datasets[0].backgroundColor = backgroundColor;
+        corpusChart.update();
+    };
+
+    const applyTheme = (theme) => {
+        if (theme === 'light') {
+            document.body.classList.add('light');
+            themeToggleLightIcon.classList.remove('hidden');
+            themeToggleDarkIcon.classList.add('hidden');
+        } else {
+            document.body.classList.remove('light');
+            themeToggleLightIcon.classList.add('hidden');
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+        updateChartTheme();
+    };
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.body.classList.contains('light') ? 'light' : 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+    });
+
+    calculateBtn.addEventListener('click', () => {
+        // --- 1. Read and Parse Inputs ---
+        const initialCorpus = parseFloat(document.getElementById('currentCorpus').value) || 0;
+        const initialMonthlyExpense = parseFloat(document.getElementById('monthlyExpense').value) || 0;
+        const initialSalary = (parseFloat(document.getElementById('currentSalary').value) * 100000) || 0;
+        const salaryGrowth = parseFloat(document.getElementById('salaryGrowth').value) / 100 || 0;
+        
+        const initialEquityPct = parseFloat(document.getElementById('equityPct').value) / 100 || 0;
+        const initialDebtPct = parseFloat(document.getElementById('debtPct').value) / 100 || 0;
+        
+        const equityGrowth = parseFloat(document.getElementById('equityGrowth').value) / 100 || 0;
+        const debtGrowth = parseFloat(document.getElementById('debtGrowth').value) / 100 || 0;
+        const presentAge = parseInt(document.getElementById('presentAge').value);
+        const retirementAge = parseInt(document.getElementById('retirementAge').value);
+        const lifeExpectancy = parseInt(document.getElementById('lifeExpectancy').value);
+        const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100 || 0;
+
+        const childEducationExpense = parseFloat(document.getElementById('childEducationExpense').value) || 0;
+        const educationalInflation = parseFloat(document.getElementById('educationalInflation').value) / 100 || 0;
+        const ageOfChild1 = parseInt(document.getElementById('ageOfChild1').value) || 0;
+        const ageOfChild2 = parseInt(document.getElementById('ageOfChild2').value) || 0;
+        
+        // Calculate years left for college for each child (18 is college age)
+        const yearsLeftForChild1College = ageOfChild1 > 0 && ageOfChild1 < 18 ? 18 - ageOfChild1 : 0;
+        const yearsLeftForChild2College = ageOfChild2 > 0 && ageOfChild2 < 18 ? 18 - ageOfChild2 : 0;
+
+        // --- 2. Input Validation ---
+        resultsDiv.classList.add('hidden');
+        errorDiv.classList.add('hidden');
+        successDiv.classList.add('hidden');
+        chartContainer.classList.add('hidden');
+
+        let errorMessage = '';
+        if (Math.round(initialEquityPct * 100 + initialDebtPct * 100) !== 100) {
+            errorMessage = 'Initial Equity and Debt allocation percentages must add up to 100.';
+        } else if (presentAge >= retirementAge) {
+            errorMessage = 'Present age must be less than retirement age.';
+        } else if (retirementAge >= lifeExpectancy) {
+            errorMessage = 'Retirement age must be less than life expectancy.';
+        } else if (!initialCorpus || !initialMonthlyExpense || !presentAge || !retirementAge) {
+             errorMessage = 'Please fill in all the required fields.';
+        }
+
+        if (errorMessage) {
+            errorDiv.textContent = errorMessage;
+            errorDiv.classList.remove('hidden');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.classList.add('fade-in');
+            return;
+        }
+
+        // --- 3. Pre-Retirement Simulation ---
+        let currentSalary = initialSalary;
+        let currentAnnualExpense = initialMonthlyExpense * 12;
+        let equityCorpus = initialCorpus * initialEquityPct;
+        let debtCorpus = initialCorpus * initialDebtPct;
+
+        const chartLabels = [];
+        const chartData = [];
+        chartLabels.push(`Age ${presentAge}`);
+        chartData.push(initialCorpus);
+        
+        // Calculate when education expense will be needed for each child
+        const educationExpenseAgeChild1 = yearsLeftForChild1College > 0 ? presentAge + yearsLeftForChild1College : 0;
+        const educationExpenseAgeChild2 = yearsLeftForChild2College > 0 ? presentAge + yearsLeftForChild2College : 0;
+        let educationExpenseChild1Deducted = false;
+        let educationExpenseChild2Deducted = false;
+
+        for (let age = presentAge; age < retirementAge; age++) {
+            // A. Determine current year's target allocation (de-risking after 50)
+            let targetEquityPct = initialEquityPct;
+            if (age >= 50) {
+                targetEquityPct = Math.max(0, 0.50 - (age - 50) / 100);
+            }
+            let targetDebtPct = 1 - targetEquityPct;
+
+            // B. Rebalance corpus at start of the year
+            let totalCorpus = equityCorpus + debtCorpus;
+            equityCorpus = totalCorpus * targetEquityPct;
+            debtCorpus = totalCorpus * targetDebtPct;
+            
+            // C. Apply growth for the year FIRST to the opening corpus for the year.
+            equityCorpus *= (1 + equityGrowth);
+            debtCorpus *= (1 + debtGrowth);
+
+            // D. Calculate savings (can be negative) and add/subtract from the corpus at the END of the year.
+            const annualSavings = currentSalary - currentAnnualExpense;
+            // The 'if' condition is removed to handle both positive (savings) and negative (withdrawals) scenarios.
+            equityCorpus += annualSavings * targetEquityPct;
+            debtCorpus += annualSavings * targetDebtPct;
+
+            // Handle one-time expenses like child's education
+            const currentAge = age + 1; // Current age at the END of this year
+            
+            // Deduct Child 1 education expense
+            if (childEducationExpense > 0 && educationExpenseAgeChild1 > 0 && !educationExpenseChild1Deducted && currentAge === educationExpenseAgeChild1) {
+                const futureEducationExpense = childEducationExpense * Math.pow(1 + educationalInflation, yearsLeftForChild1College);
+                const totalCorpusBeforeExpense = equityCorpus + debtCorpus;
+                console.log(`Deducting Child 1 education expense at age ${currentAge}: ${futureEducationExpense}`);
+                if (futureEducationExpense <= totalCorpusBeforeExpense) {
+                    equityCorpus -= futureEducationExpense * targetEquityPct;
+                    debtCorpus -= futureEducationExpense * targetDebtPct;
+                    educationExpenseChild1Deducted = true;
+                } else {
+                    equityCorpus = 0;
+                    debtCorpus = 0;
+                    educationExpenseChild1Deducted = true;
+                }
+            }
+            
+            // Deduct Child 2 education expense
+            if (childEducationExpense > 0 && educationExpenseAgeChild2 > 0 && !educationExpenseChild2Deducted && currentAge === educationExpenseAgeChild2) {
+                const futureEducationExpense = childEducationExpense * Math.pow(1 + educationalInflation, yearsLeftForChild2College);
+                const totalCorpusBeforeExpense = equityCorpus + debtCorpus;
+                console.log(`Deducting Child 2 education expense at age ${currentAge}: ${futureEducationExpense}`);
+                if (futureEducationExpense <= totalCorpusBeforeExpense) {
+                    equityCorpus -= futureEducationExpense * targetEquityPct;
+                    debtCorpus -= futureEducationExpense * targetDebtPct;
+                    educationExpenseChild2Deducted = true;
+                } else {
+                    equityCorpus = 0;
+                    debtCorpus = 0;
+                    educationExpenseChild2Deducted = true;
+                }
+            }
+
+            // E. Inflate salary and expense for the START of the next year
+            currentSalary *= (1 + salaryGrowth);
+            currentAnnualExpense *= (1 + inflationRate);
+
+            chartLabels.push(`Age ${age + 1}`);
+            chartData.push(equityCorpus + debtCorpus);
+        }
+
+        const totalProjectedCorpus = equityCorpus + debtCorpus;
+
+        // --- 4. Post-Retirement Simulation ---
+        let postRetirementExpense = currentAnnualExpense; // This is already inflated to retirement age
+
+        for (let age = retirementAge; age < lifeExpectancy; age++) {
+            chartLabels.push(`Age ${age + 1}`);
+            
+            // A. Determine target allocation
+            let targetEquityPct = initialEquityPct;
+            if (age >= 50) {
+                targetEquityPct = Math.max(0, 0.50 - (age - 50) / 100);
+            }
+            let targetDebtPct = 1 - targetEquityPct;
+            
+            // B. Rebalance at the start of the year
+            let totalCorpus = equityCorpus + debtCorpus;
+            equityCorpus = totalCorpus * targetEquityPct;
+            debtCorpus = totalCorpus * targetDebtPct;
+
+            // C. Withdraw expense for the year (proportionally from rebalanced corpus)
+            if (postRetirementExpense <= (equityCorpus + debtCorpus)) {
+                equityCorpus -= postRetirementExpense * targetEquityPct;
+                debtCorpus -= postRetirementExpense * targetDebtPct;
+            } else {
+                 equityCorpus = 0;
+                 debtCorpus = 0;
+            }
+
+            // Handle one-time expenses like child's education (if it falls after retirement)
+            const currentAge = age + 1; // Current age at the END of this year
+            
+            // Deduct Child 1 education expense (if after retirement)
+            if (childEducationExpense > 0 && educationExpenseAgeChild1 > 0 && !educationExpenseChild1Deducted && currentAge === educationExpenseAgeChild1) {
+                const futureEducationExpense = childEducationExpense * Math.pow(1 + educationalInflation, yearsLeftForChild1College);
+                const totalCorpusBeforeExpense = equityCorpus + debtCorpus;
+                console.log(`Deducting Child 1 education expense at age ${currentAge} (post-retirement): ${futureEducationExpense}`);
+                if (futureEducationExpense <= totalCorpusBeforeExpense) {
+                    equityCorpus -= futureEducationExpense * targetEquityPct;
+                    debtCorpus -= futureEducationExpense * targetDebtPct;
+                    educationExpenseChild1Deducted = true;
+                } else {
+                    equityCorpus = 0;
+                    debtCorpus = 0;
+                    educationExpenseChild1Deducted = true;
+                }
+            }
+            
+            // Deduct Child 2 education expense (if after retirement)
+            if (childEducationExpense > 0 && educationExpenseAgeChild2 > 0 && !educationExpenseChild2Deducted && currentAge === educationExpenseAgeChild2) {
+                const futureEducationExpense = childEducationExpense * Math.pow(1 + educationalInflation, yearsLeftForChild2College);
+                const totalCorpusBeforeExpense = equityCorpus + debtCorpus;
+                console.log(`Deducting Child 2 education expense at age ${currentAge} (post-retirement): ${futureEducationExpense}`);
+                if (futureEducationExpense <= totalCorpusBeforeExpense) {
+                    equityCorpus -= futureEducationExpense * targetEquityPct;
+                    debtCorpus -= futureEducationExpense * targetDebtPct;
+                    educationExpenseChild2Deducted = true;
+                } else {
+                    equityCorpus = 0;
+                    debtCorpus = 0;
+                    educationExpenseChild2Deducted = true;
+                }
+            }
+
+            // D. Apply growth to the remaining corpus
+            equityCorpus *= (1 + equityGrowth);
+            debtCorpus *= (1 + debtGrowth);
+            
+            // E. Store data for chart and inflate expense for next year
+            chartData.push(equityCorpus + debtCorpus);
+            postRetirementExpense *= (1 + inflationRate);
+        }
+        const finalSurplus = equityCorpus + debtCorpus;
+
+
+        // --- 5. Display Results ---
+        document.getElementById('projected-corpus').textContent = formatCurrency(totalProjectedCorpus);
+        
+        const outcomeCard = document.getElementById('outcome-card');
+        const outcomeTitle = document.getElementById('outcome-title');
+        const outcomeValue = document.getElementById('outcome-value');
+        const outcomeDesc = document.getElementById('outcome-description');
+
+        if (finalSurplus > 0) {
+            outcomeCard.className = 'p-6 rounded-xl bg-green-900/50 text-green-300 border border-green-500/50';
+            outcomeTitle.textContent = 'Projected Final Value';
+            outcomeValue.textContent = formatCurrency(finalSurplus);
+            outcomeDesc.textContent = `Congratulations! Based on the simulation, you could have this amount left at age ${lifeExpectancy}.`;
+        } else {
+            outcomeCard.className = 'p-6 rounded-xl bg-red-900/50 text-red-300 border border-red-500/50';
+            outcomeTitle.textContent = 'Projected Shortfall';
+            const moneyRunsOutAge = retirementAge + chartData.findIndex(v => v <= 0) + 1;
+            
+            // Calculate required corpus and additional savings needed
+            const requiredCorpus = calculateRequiredCorpus({
+                retirementAge,
+                lifeExpectancy,
+                initialMonthlyExpense,
+                inflationRate,
+                initialEquityPct,
+                equityGrowth,
+                debtGrowth,
+                presentAge
+            });
+            
+            const savingsInfo = calculateAdditionalSavingsNeeded(
+                totalProjectedCorpus,
+                requiredCorpus,
+                presentAge,
+                retirementAge,
+                salaryGrowth
+            );
+
+            outcomeValue.textContent = formatCurrency(savingsInfo.shortfall);
+
+            // Add suggestion section
+            outcomeDesc.innerHTML = `
+                You are projected to run out of money around age ${moneyRunsOutAge}. The simulated shortfall at age ${lifeExpectancy} is ${formatCurrency(Math.abs(finalSurplus))}.
+                <div class="mt-4 p-4 suggestion-box rounded-lg border border-blue-500/30">
+                    <h4 class="text-lg font-semibold text-blue-300 mb-3">💡 Suggestion to Bridge the Gap</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div class="space-y-2">
+                            <p><strong>Required Corpus at Retirement:</strong><br/>${formatCurrency(requiredCorpus)}</p>
+                            <p><strong>Current Projected Corpus:</strong><br/>${formatCurrency(totalProjectedCorpus)}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-red-300"><strong>Additional Corpus Needed:</strong><br/>${formatCurrency(savingsInfo.shortfall)}</p>
+                            <p class="text-yellow-300"><strong>Extra Monthly Savings:</strong><br/>${formatCurrency(savingsInfo.additionalMonthlySavings)}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-2 bg-yellow-900/30 rounded border border-yellow-500/30">
+                        <p class="text-xs text-yellow-200">
+                            <strong>💡 Tip:</strong> Increase your monthly savings by ${formatCurrency(savingsInfo.additionalMonthlySavings)} 
+                            to ensure your corpus lasts until age ${lifeExpectancy}. You can achieve this through higher salary growth, 
+                            reduced expenses, or better investment returns.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- 6. Render Graph ---
+        if (corpusChart) {
+            corpusChart.destroy();
+        }
+
+        const isLight = document.body.classList.contains('light');
+        const gridColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+        const tickColor = isLight ? '#4b5563' : '#9ca3af';
+        const legendColor = isLight ? '#1f2937' : '#d1d5db';
+        const borderColor = isLight ? '#4f46e5' : 'rgba(79, 70, 229, 1)';
+        const backgroundColor = isLight ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.2)';
+
+        corpusChart = new Chart(chartCanvas, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Corpus Value',
+                    data: chartData,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { labels: { color: legendColor } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Corpus: ${formatCurrency(context.parsed.y)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { 
+                            color: tickColor,
+                            callback: function(value) {
+                                return '₹' + (value / 100000).toFixed(0) + 'L';
+                            }
+                        },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: tickColor },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+        
+        chartContainer.classList.remove('hidden');
+        successDiv.classList.remove('hidden');
+        resultsDiv.classList.remove('hidden');
+        resultsDiv.classList.add('fade-in');
+        
+        if (window.innerWidth < 768) {
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+</script>
+
+</body>
+</html>
