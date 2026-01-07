@@ -6,6 +6,7 @@
     <title>Retirement Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -141,12 +142,24 @@
                 <input type="number" id="salaryGrowth" value="6" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
-                <label for="equityPct" class="block text-sm font-medium text-gray-300">Initial Equity Allocation (%)</label>
-                <input type="number" id="equityPct" value="60" step="1" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 70">
+                <label for="currentCorpusEquityPct" class="block text-sm font-medium text-gray-300">Current Corpus Equity (%)
+                    <span class="text-xs text-gray-400 font-normal"> - How your existing portfolio is split</span>
+                </label>
+                <input type="number" id="currentCorpusEquityPct" value="80" step="1" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 80">
             </div>
             <div>
-                <label for="debtPct" class="block text-sm font-medium text-gray-300">Initial Debt Allocation (%)</label>
-                <input type="number" id="debtPct" value="40" readonly class="mt-1 block w-full bg-gray-600 text-gray-300 border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm cursor-not-allowed" placeholder="e.g., 30">
+                <label for="currentCorpusDebtPct" class="block text-sm font-medium text-gray-300">Current Corpus Debt (%)</label>
+                <input type="number" id="currentCorpusDebtPct" value="20" readonly class="mt-1 block w-full bg-gray-600 text-gray-300 border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm cursor-not-allowed" placeholder="e.g., 20">
+            </div>
+            <div>
+                <label for="futureEquityPct" class="block text-sm font-medium text-gray-300">Future Savings Equity Allocation (%)
+                    <span class="text-xs text-gray-400 font-normal"> - How new monthly savings will be invested</span>
+                </label>
+                <input type="number" id="futureEquityPct" value="60" step="1" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 70">
+            </div>
+            <div>
+                <label for="futureDebtPct" class="block text-sm font-medium text-gray-300">Future Savings Debt Allocation (%)</label>
+                <input type="number" id="futureDebtPct" value="40" readonly class="mt-1 block w-full bg-gray-600 text-gray-300 border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none sm:text-sm cursor-not-allowed" placeholder="e.g., 30">
             </div>
             <div>
                 <label for="equityGrowth" class="block text-sm font-medium text-gray-300">Expected Equity Growth (%)</label>
@@ -175,7 +188,7 @@
                 <input type="number" id="inflationRate" value="7" step="0.5" min="0" max="100" class="with-stepper mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
-                <label for="childEducationExpense" class="block text-sm font-medium text-gray-300">College Expense at today's rate (₹)</label>
+                <label for="childEducationExpense" class="block text-sm font-medium text-gray-300">Child Education Expense Today (₹)</label>
                 <input type="number" id="childEducationExpense" value="5000000" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div>
@@ -257,7 +270,7 @@
             lifeExpectancy, 
             initialMonthlyExpense, 
             inflationRate, 
-            initialEquityPct, 
+            futureEquityPct, 
             equityGrowth, 
             debtGrowth,
             presentAge 
@@ -276,7 +289,7 @@
 
         for (let age = retirementAge; age < lifeExpectancy; age++) {
             // Calculate target allocation for this age
-            let targetEquityPct = initialEquityPct;
+            let targetEquityPct = futureEquityPct;
             if (age >= 50) {
                 targetEquityPct = Math.max(0, 0.50 - (age - 50) / 100);
             }
@@ -366,13 +379,21 @@
         applyTheme(savedTheme);
         
         // Auto-calculate debt allocation when equity allocation changes
-        const equityPctInput = document.getElementById('equityPct');
-        const debtPctInput = document.getElementById('debtPct');
+        const currentCorpusEquityPctInput = document.getElementById('currentCorpusEquityPct');
+        const currentCorpusDebtPctInput = document.getElementById('currentCorpusDebtPct');
+        const futureEquityPctInput = document.getElementById('futureEquityPct');
+        const futureDebtPctInput = document.getElementById('futureDebtPct');
         
-        equityPctInput.addEventListener('input', () => {
-            const equityValue = parseFloat(equityPctInput.value) || 0;
+        currentCorpusEquityPctInput.addEventListener('input', () => {
+            const equityValue = parseFloat(currentCorpusEquityPctInput.value) || 0;
             const debtValue = 100 - equityValue;
-            debtPctInput.value = debtValue;
+            currentCorpusDebtPctInput.value = debtValue;
+        });
+        
+        futureEquityPctInput.addEventListener('input', () => {
+            const equityValue = parseFloat(futureEquityPctInput.value) || 0;
+            const debtValue = 100 - equityValue;
+            futureDebtPctInput.value = debtValue;
         });
     });
 
@@ -383,8 +404,10 @@
         const initialSalary = (parseFloat(document.getElementById('currentSalary').value) * 100000) || 0;
         const salaryGrowth = parseFloat(document.getElementById('salaryGrowth').value) / 100 || 0;
         
-        const initialEquityPct = parseFloat(document.getElementById('equityPct').value) / 100 || 0;
-        const initialDebtPct = parseFloat(document.getElementById('debtPct').value) / 100 || 0;
+        const currentCorpusEquityPct = parseFloat(document.getElementById('currentCorpusEquityPct').value) / 100 || 0;
+        const currentCorpusDebtPct = parseFloat(document.getElementById('currentCorpusDebtPct').value) / 100 || 0;
+        const futureEquityPct = parseFloat(document.getElementById('futureEquityPct').value) / 100 || 0;
+        const futureDebtPct = parseFloat(document.getElementById('futureDebtPct').value) / 100 || 0;
         
         const equityGrowth = parseFloat(document.getElementById('equityGrowth').value) / 100 || 0;
         const debtGrowth = parseFloat(document.getElementById('debtGrowth').value) / 100 || 0;
@@ -409,13 +432,21 @@
         chartContainer.classList.add('hidden');
 
         let errorMessage = '';
-        if (Math.round(initialEquityPct * 100 + initialDebtPct * 100) !== 100) {
-            errorMessage = 'Initial Equity and Debt allocation percentages must add up to 100.';
+        if (Math.round(currentCorpusEquityPct * 100 + currentCorpusDebtPct * 100) !== 100) {
+            errorMessage = 'Current Corpus Equity and Debt allocation percentages must add up to 100.';
+        } else if (Math.round(futureEquityPct * 100 + futureDebtPct * 100) !== 100) {
+            errorMessage = 'Future Savings Equity and Debt allocation percentages must add up to 100.';
         } else if (presentAge >= retirementAge) {
             errorMessage = 'Present age must be less than retirement age.';
         } else if (retirementAge >= lifeExpectancy) {
             errorMessage = 'Retirement age must be less than life expectancy.';
-        } else if (!initialCorpus || !initialMonthlyExpense || !presentAge || !retirementAge) {
+        } else if (initialCorpus < 0 || initialMonthlyExpense < 0) {
+            errorMessage = 'Corpus and expense values cannot be negative.';
+        } else if (ageOfChild1 > 18 || ageOfChild2 > 18) {
+            errorMessage = 'Child ages should be 18 or below (or 0 if no child).';
+        } else if (ageOfChild1 < 0 || ageOfChild2 < 0) {
+            errorMessage = 'Child ages cannot be negative. Use 0 if no child.';
+        } else if (!initialMonthlyExpense || !presentAge || !retirementAge) {
              errorMessage = 'Please fill in all the required fields.';
         }
 
@@ -430,8 +461,12 @@
         // --- 3. Pre-Retirement Simulation ---
         let currentSalary = initialSalary;
         let currentAnnualExpense = initialMonthlyExpense * 12;
-        let equityCorpus = initialCorpus * initialEquityPct;
-        let debtCorpus = initialCorpus * initialDebtPct;
+        // Split initial corpus according to current allocation (kept unchanged)
+        let existingEquityCorpus = initialCorpus * currentCorpusEquityPct;
+        let existingDebtCorpus = initialCorpus * currentCorpusDebtPct;
+        // Track new savings separately with future allocation
+        let newSavingsEquity = 0;
+        let newSavingsDebt = 0;
 
         const chartLabels = [];
         const chartData = [];
@@ -445,27 +480,49 @@
         let educationExpenseChild2Deducted = false;
 
         for (let age = presentAge; age < retirementAge; age++) {
-            // A. Determine current year's target allocation (de-risking after 50)
-            let targetEquityPct = initialEquityPct;
-            if (age >= 50) {
-                targetEquityPct = Math.max(0, 0.50 - (age - 50) / 100);
-            }
-            let targetDebtPct = 1 - targetEquityPct;
-
-            // B. Rebalance corpus at start of the year
-            let totalCorpus = equityCorpus + debtCorpus;
-            equityCorpus = totalCorpus * targetEquityPct;
-            debtCorpus = totalCorpus * targetDebtPct;
+            // A. Apply growth to existing corpus (maintains its original allocation)
+            existingEquityCorpus *= (1 + equityGrowth);
+            existingDebtCorpus *= (1 + debtGrowth);
             
-            // C. Apply growth for the year FIRST to the opening corpus for the year.
-            equityCorpus *= (1 + equityGrowth);
-            debtCorpus *= (1 + debtGrowth);
+            // B. Apply growth to new savings (maintains future allocation)
+            newSavingsEquity *= (1 + equityGrowth);
+            newSavingsDebt *= (1 + debtGrowth);
 
-            // D. Calculate savings (can be negative) and add/subtract from the corpus at the END of the year.
+            // C. Calculate savings and handle deposits/withdrawals
             const annualSavings = currentSalary - currentAnnualExpense;
-            // The 'if' condition is removed to handle both positive (savings) and negative (withdrawals) scenarios.
-            equityCorpus += annualSavings * targetEquityPct;
-            debtCorpus += annualSavings * targetDebtPct;
+            
+            if (annualSavings >= 0) {
+                // Positive savings - invest using future allocation
+                newSavingsEquity += annualSavings * futureEquityPct;
+                newSavingsDebt += annualSavings * futureDebtPct;
+            } else {
+                // Negative savings (withdrawal) - withdraw proportionally from current corpus composition
+                const totalCorpus = existingEquityCorpus + existingDebtCorpus + newSavingsEquity + newSavingsDebt;
+                if (totalCorpus > 0) {
+                    const totalEquity = existingEquityCorpus + newSavingsEquity;
+                    const totalDebt = existingDebtCorpus + newSavingsDebt;
+                    const currentEquityPct = totalEquity / totalCorpus;
+                    const currentDebtPct = totalDebt / totalCorpus;
+                    
+                    const totalWithdrawal = Math.min(Math.abs(annualSavings), totalCorpus); // Don't withdraw more than available
+                    
+                    // Calculate how much to withdraw from each pool
+                    const existingTotal = existingEquityCorpus + existingDebtCorpus;
+                    const newSavingsTotal = newSavingsEquity + newSavingsDebt;
+                    const existingProportion = totalCorpus > 0 ? existingTotal / totalCorpus : 0;
+                    const newSavingsProportion = totalCorpus > 0 ? newSavingsTotal / totalCorpus : 0;
+                    
+                    // Withdraw proportionally from both existing and new savings pools
+                    existingEquityCorpus = Math.max(0, existingEquityCorpus - totalWithdrawal * currentEquityPct * existingProportion);
+                    existingDebtCorpus = Math.max(0, existingDebtCorpus - totalWithdrawal * currentDebtPct * existingProportion);
+                    newSavingsEquity = Math.max(0, newSavingsEquity - totalWithdrawal * currentEquityPct * newSavingsProportion);
+                    newSavingsDebt = Math.max(0, newSavingsDebt - totalWithdrawal * currentDebtPct * newSavingsProportion);
+                }
+            }
+            
+            // Calculate total corpus
+            const equityCorpus = existingEquityCorpus + newSavingsEquity;
+            const debtCorpus = existingDebtCorpus + newSavingsDebt;
 
             // Handle one-time expenses like child's education
             const currentAge = age + 1; // Current age at the END of this year
@@ -475,13 +532,27 @@
                 const futureEducationExpense = childEducationExpense * Math.pow(1 + educationalInflation, yearsLeftForChild1College);
                 const totalCorpusBeforeExpense = equityCorpus + debtCorpus;
                 console.log(`Deducting Child 1 education expense at age ${currentAge}: ${futureEducationExpense}`);
-                if (futureEducationExpense <= totalCorpusBeforeExpense) {
-                    equityCorpus -= futureEducationExpense * targetEquityPct;
-                    debtCorpus -= futureEducationExpense * targetDebtPct;
+                if (futureEducationExpense <= totalCorpusBeforeExpense && totalCorpusBeforeExpense > 0) {
+                    // Deduct proportionally from total corpus
+                    const totalCorpus = equityCorpus + debtCorpus;
+                    const currentEquityPct = totalCorpus > 0 ? equityCorpus / totalCorpus : 0;
+                    const currentDebtPct = totalCorpus > 0 ? debtCorpus / totalCorpus : 0;
+                    const equityDeduction = futureEducationExpense * currentEquityPct;
+                    const debtDeduction = futureEducationExpense * currentDebtPct;
+                    // Deduct from both existing and new savings proportionally
+                    const existingTotal = existingEquityCorpus + existingDebtCorpus;
+                    const newSavingsTotal = newSavingsEquity + newSavingsDebt;
+                    const existingProportion = existingTotal / totalCorpus;
+                    existingEquityCorpus -= equityDeduction * existingProportion;
+                    existingDebtCorpus -= debtDeduction * existingProportion;
+                    newSavingsEquity -= equityDeduction * (1 - existingProportion);
+                    newSavingsDebt -= debtDeduction * (1 - existingProportion);
                     educationExpenseChild1Deducted = true;
                 } else {
-                    equityCorpus = 0;
-                    debtCorpus = 0;
+                    existingEquityCorpus = 0;
+                    existingDebtCorpus = 0;
+                    newSavingsEquity = 0;
+                    newSavingsDebt = 0;
                     educationExpenseChild1Deducted = true;
                 }
             }
@@ -491,25 +562,42 @@
                 const futureEducationExpense = childEducationExpense * Math.pow(1 + educationalInflation, yearsLeftForChild2College);
                 const totalCorpusBeforeExpense = equityCorpus + debtCorpus;
                 console.log(`Deducting Child 2 education expense at age ${currentAge}: ${futureEducationExpense}`);
-                if (futureEducationExpense <= totalCorpusBeforeExpense) {
-                    equityCorpus -= futureEducationExpense * targetEquityPct;
-                    debtCorpus -= futureEducationExpense * targetDebtPct;
+                if (futureEducationExpense <= totalCorpusBeforeExpense && totalCorpusBeforeExpense > 0) {
+                    // Deduct proportionally from total corpus
+                    const totalCorpus = equityCorpus + debtCorpus;
+                    const currentEquityPct = totalCorpus > 0 ? equityCorpus / totalCorpus : 0;
+                    const currentDebtPct = totalCorpus > 0 ? debtCorpus / totalCorpus : 0;
+                    const equityDeduction = futureEducationExpense * currentEquityPct;
+                    const debtDeduction = futureEducationExpense * currentDebtPct;
+                    // Deduct from both existing and new savings proportionally
+                    const existingTotal = existingEquityCorpus + existingDebtCorpus;
+                    const newSavingsTotal = newSavingsEquity + newSavingsDebt;
+                    const existingProportion = existingTotal / totalCorpus;
+                    existingEquityCorpus -= equityDeduction * existingProportion;
+                    existingDebtCorpus -= debtDeduction * existingProportion;
+                    newSavingsEquity -= equityDeduction * (1 - existingProportion);
+                    newSavingsDebt -= debtDeduction * (1 - existingProportion);
                     educationExpenseChild2Deducted = true;
                 } else {
-                    equityCorpus = 0;
-                    debtCorpus = 0;
+                    existingEquityCorpus = 0;
+                    existingDebtCorpus = 0;
+                    newSavingsEquity = 0;
+                    newSavingsDebt = 0;
                     educationExpenseChild2Deducted = true;
                 }
             }
 
-            // E. Inflate salary and expense for the START of the next year
+            // D. Inflate salary and expense for the START of the next year
             currentSalary *= (1 + salaryGrowth);
             currentAnnualExpense *= (1 + inflationRate);
 
             chartLabels.push(`Age ${age + 1}`);
-            chartData.push(equityCorpus + debtCorpus);
+            chartData.push(existingEquityCorpus + existingDebtCorpus + newSavingsEquity + newSavingsDebt);
         }
 
+        // Combine corpus at retirement
+        let equityCorpus = existingEquityCorpus + newSavingsEquity;
+        let debtCorpus = existingDebtCorpus + newSavingsDebt;
         const totalProjectedCorpus = equityCorpus + debtCorpus;
 
         // --- 4. Post-Retirement Simulation ---
@@ -518,14 +606,14 @@
         for (let age = retirementAge; age < lifeExpectancy; age++) {
             chartLabels.push(`Age ${age + 1}`);
             
-            // A. Determine target allocation
-            let targetEquityPct = initialEquityPct;
+            // A. Determine target allocation (de-risking after 50)
+            let targetEquityPct = futureEquityPct;
             if (age >= 50) {
                 targetEquityPct = Math.max(0, 0.50 - (age - 50) / 100);
             }
             let targetDebtPct = 1 - targetEquityPct;
             
-            // B. Rebalance at the start of the year
+            // B. Rebalance at the start of the year (post-retirement)
             let totalCorpus = equityCorpus + debtCorpus;
             equityCorpus = totalCorpus * targetEquityPct;
             debtCorpus = totalCorpus * targetDebtPct;
@@ -599,7 +687,7 @@
             lifeExpectancy,
             initialMonthlyExpense,
             inflationRate,
-            initialEquityPct,
+            futureEquityPct,
             equityGrowth,
             debtGrowth,
             presentAge
@@ -704,7 +792,32 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return `Corpus: ${formatCurrency(context.parsed.y)}`;
+                                const label = context.label;
+                                const value = formatCurrency(context.parsed.y);
+                                if (label === `Age ${retirementAge}`) {
+                                    return [`Corpus: ${value}`, '🎯 Retirement Age'];
+                                }
+                                return `Corpus: ${value}`;
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            retirementLine: {
+                                type: 'line',
+                                xMin: retirementAge - presentAge,
+                                xMax: retirementAge - presentAge,
+                                borderColor: isLight ? '#f59e0b' : '#fbbf24',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    display: true,
+                                    content: 'Retirement',
+                                    position: 'start',
+                                    backgroundColor: isLight ? '#f59e0b' : '#fbbf24',
+                                    color: isLight ? '#fff' : '#000',
+                                    font: { size: 10 }
+                                }
                             }
                         }
                     }
